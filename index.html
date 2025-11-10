@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="TradeFocus">
   <link rel="manifest" href="manifest.webmanifest">
-  <title>TradeFocus — App</title>
+  <title>TradeFocus — App (Fixed)</title>
   <style>
     :root{
       --bg:#0f1220; --panel:#171a2a; --panel-2:#1f2340; --text:#e8ebff; --muted:#a9b0d6;
@@ -17,35 +17,38 @@
       --radius:16px;
       --safe-top: env(safe-area-inset-top);
       --safe-bottom: env(safe-area-inset-bottom);
+      --tabbar-h: 64px;
     }
+    /* Reset & base */
     *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
     html,body{height:100%}
     body{
       margin:0; font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       background: radial-gradient(1200px 900px at 15% 5%, #1b1f37 0%, #0f1220 40%, #0f1220 100%);
       color:var(--text);
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
     .app{
-      height: 100dvh;
+      height: 100svh; /* better on iOS than 100vh/dvh */
       display:flex; flex-direction:column;
     }
     header.appbar{
       position:sticky; top:0; z-index:10;
-      padding: calc(10px + var(--safe-top)) 16px 10px 16px;
+      padding: calc(8px + var(--safe-top)) 16px 8px 16px;
       background: linear-gradient(180deg, rgba(15,18,32,.98) 0%, rgba(15,18,32,.82) 100%);
       border-bottom: 1px solid var(--border);
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       backdrop-filter: blur(8px);
     }
-    .brand{display:flex; gap:10px; align-items:center}
+    .brand{display:flex; gap:10px; align-items:center; min-height:40px}
     .logo{width:26px; height:26px; border-radius:8px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow:0 6px 18px rgba(108,140,255,.4)}
     .brand h1{font-size:18px; margin:0}
     .install-btn{background:#252a52; color:#cad1ff; border:1px solid var(--border); padding:8px 12px; border-radius:999px; font-size:12px}
-    main{flex:1; min-height:0; display:grid; grid-template-rows:1fr}
-    .screen{height:100%; overflow:auto; padding:12px 12px 24px 12px}
+    main{flex:1; min-height:0; display:grid; grid-template-rows:1fr; padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom));}
+    .screen{height:100%; overflow:auto; padding:12px 12px 24px 12px; -webkit-overflow-scrolling: touch;}
     .hidden{display:none !important}
     .card{background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px}
-    .card h2{margin:0; font-size:15px; padding:12px 12px; border-bottom:1px solid var(--border); color:#cfd6ff}
+    .card h2{margin:0; font-size:15px; padding:12px 12px; border-bottom:1px solid var(--border); color:#cfd6ff; position:sticky; top:0; background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); z-index:1}
     .card .body{padding:12px}
     .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
     .row-3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
@@ -57,6 +60,7 @@
     input, select, textarea{
       width:100%; padding:14px 12px; border-radius:12px; border:1px solid var(--border);
       background:#0e1122; color:#e8ebff; outline:none; font-size:16px;
+      -webkit-appearance: none; appearance: none;
     }
     textarea{min-height:72px; resize:vertical}
     input::placeholder{color:#6f76a5}
@@ -65,22 +69,16 @@
     button{
       appearance:none; border:none; padding:12px 14px; border-radius:12px; cursor:pointer;
       background:var(--accent); color:#fff; font-weight:700; box-shadow:0 4px 16px rgba(108,140,255,.35); font-size:15px;
+      min-height:44px;
     }
     button.secondary{background:#252a52; color:#cad1ff; box-shadow:none; border:1px solid var(--border)}
     button.ghost{background:transparent; color:#cad1ff; border:1px dashed var(--border)}
     button.warn{background:var(--danger)}
+    button:active{transform: translateY(1px)}
     .switch{display:flex; gap:8px; background:#0e1230; border:1px solid var(--border); padding:6px; border-radius:12px; width:max-content}
     .switch button{padding:8px 12px; background:transparent; box-shadow:none; color:#b8c1ff; font-weight:600}
     .switch button.active{background:var(--accent); color:white; border-radius:8px}
     .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:#121633; border:1px solid var(--border); color:#cdd3ff; font-size:12px}
-    table{width:100%; border-collapse:collapse; font-size:14px}
-    th,td{padding:10px 8px; border-bottom:1px dashed var(--border); text-align:right}
-    th:first-child, td:first-child{text-align:left}
-    th{font-weight:600; color:#cfd6ff}
-    .metric{background:#101540; border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:8px}
-    .metric .k{font-weight:800; font-size:18px; color:#fff}
-    .metric .t{font-size:12px; color:#a9b0d6}
-    .ok{color:var(--ok)} .bad{color:var(--danger)} .muted{color:#9aa2d0}
     .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px}
     .chip{background:#10163b; border:1px solid var(--border); padding:8px 10px; border-radius:10px; font-size:12px; color:#cdd3ff; cursor:pointer}
     .tp-list{display:flex; flex-direction:column; gap:10px}
@@ -92,23 +90,38 @@
       background:#0d1030d9; border:1px solid var(--border); backdrop-filter: blur(6px);
       border-radius:12px; padding:12px; display:none; gap:10px; align-items:center; justify-content:space-between;
     }
-    /* Bottom nav */
+    /* Bottom nav (fixed + safe-area) */
     nav.tabbar{
-      position:sticky; bottom:0; left:0; right:0; z-index:15;
+      position:fixed; bottom:0; left:0; right:0; z-index:15;
       background: linear-gradient(180deg, rgba(15,18,32,.95) 0%, rgba(15,18,32,1) 100%);
       border-top: 1px solid var(--border);
       padding: 6px 10px calc(6px + var(--safe-bottom));
       display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+      height: calc(var(--tabbar-h) + var(--safe-bottom));
+      box-sizing: content-box;
     }
     .tabbtn{
       display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
       color:#b9c2ff; background:#0f1436; border:1px solid var(--border);
-      border-radius:12px; padding:10px 8px; font-size:12px; font-weight:700;
+      border-radius:12px; padding:8px 6px; font-size:12px; font-weight:700; min-height:44px;
     }
     .tabbtn.active{background:linear-gradient(135deg, #1a2355, #15224a); color:#fff; border-color:#39407a}
     .tabbtn .dot{width:6px; height:6px; border-radius:999px; background:#3e4aa0}
     .tabbtn.active .dot{background:var(--accent-2)}
-    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+    /* Table responsiveness */
+    .table-wrap{overflow:auto; -webkit-overflow-scrolling:touch}
+    table{width:100%; border-collapse:separate; border-spacing:0; font-size:14px; min-width:720px}
+    th,td{padding:10px 8px; border-bottom:1px dashed var(--border); text-align:right; background:transparent}
+    th:first-child, td:first-child{text-align:left; position:sticky; left:0; background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);}
+    th{font-weight:600; color:#cfd6ff; position:sticky; top:0; background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); z-index:2}
+    .nowrap{white-space:nowrap}
+    /* Focus visibility for accessibility */
+    :focus-visible{outline:2px solid var(--accent-2); outline-offset:2px; border-radius:10px}
+    /* Small phones tweaks */
+    @media (max-width:360px){
+      .brand h1{font-size:16px}
+      .tabbtn{font-size:11px}
+    }
   </style>
 </head>
 <body>
@@ -212,12 +225,14 @@
             <div class="metric"><div class="t">ROI nếu chạm SL</div><div class="k bad"><span id="roiStop">—</span> <span class="muted">%</span></div></div>
             <div class="metric"><div class="t">Tiền chịu lỗ (R)</div><div class="k bad"><span id="outRisk">—</span> <span class="muted">USDT</span></div></div>
 
-            <table id="tpTable" style="margin-top:6px; display:none">
-              <thead>
-                <tr><th>TP</th><th>Di chuyển</th><th>PNL</th><th>ROI</th><th>R:R</th></tr>
-              </thead>
-              <tbody id="tpBody"></tbody>
-            </table>
+            <div class="table-wrap">
+              <table id="tpTable" style="margin-top:6px; display:none">
+                <thead>
+                  <tr><th>TP</th><th>Di chuyển</th><th>PNL</th><th>ROI</th><th>R:R</th></tr>
+                </thead>
+                <tbody id="tpBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -241,7 +256,7 @@
                   <option value="year">Năm</option>
                 </select>
               </div>
-              <div style="display:flex; align-items:flex-end; gap:8px">
+              <div style="display:flex; align-items:flex-end; gap:8px; flex-wrap:wrap">
                 <button id="btnFilter" class="secondary">Lọc</button>
                 <button id="btnExportCSV" class="ghost">Xuất CSV</button>
                 <button id="btnExportJSON" class="ghost">Xuất JSON</button>
@@ -255,23 +270,25 @@
             <div class="metric"><div class="t">PNL ròng</div><div class="k" id="sNet">0</div></div>
             <div class="metric"><div class="t">Expectancy / lệnh</div><div class="k" id="sExp">0</div></div>
 
-            <table id="journalTable" style="margin-top:6px">
-              <thead>
-                <tr>
-                  <th>Thời gian</th>
-                  <th>Coin</th>
-                  <th>Side</th>
-                  <th class="nowrap">E / SL</th>
-                  <th class="nowrap">Q / L</th>
-                  <th>R</th>
-                  <th>TPs</th>
-                  <th>Kết quả</th>
-                  <th>Ghi chú</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody id="journalBody"></tbody>
-            </table>
+            <div class="table-wrap">
+              <table id="journalTable" style="margin-top:6px">
+                <thead>
+                  <tr>
+                    <th>Thời gian</th>
+                    <th>Coin</th>
+                    <th>Side</th>
+                    <th class="nowrap">E / SL</th>
+                    <th class="nowrap">Q / L</th>
+                    <th>R</th>
+                    <th>TPs</th>
+                    <th>Kết quả</th>
+                    <th>Ghi chú</th>
+                    <th>Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="journalBody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -284,7 +301,7 @@
             <p>- Nhập M, E, SL và một trong L/R/Q. Bấm <b>Tính toán</b>.</p>
             <p>- Chọn <b>Thêm vào Nhật ký</b> để lưu. Dữ liệu lưu trên thiết bị.</p>
             <p>- Ở tab <b>Nhật ký</b>, bạn có thể Win/Loss/Sửa/Xoá và Xuất CSV/JSON.</p>
-            <p>- Bấm nút <b>Cài đặt</b> trên thanh trên cùng để thêm app vào màn hình chính.</p>
+            <p>- App có thanh điều hướng cố định phía dưới; phần nội dung đã chừa chỗ để tránh che phủ.</p>
           </div>
         </div>
       </section>
@@ -314,6 +331,8 @@
         const id=btn.getAttribute('data-tab');
         $$('.tabbtn').forEach(b=>{ b.classList.toggle('active', b===btn); b.setAttribute('aria-selected', b===btn); });
         $$('.screen').forEach(sc=> sc.classList.toggle('hidden', sc.id!==id));
+        // Scroll top for new screen
+        document.getElementById(id).scrollTo({top:0, behavior:'smooth'});
       };
     });
 
