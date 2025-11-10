@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>TradeFocus — Position & Risk Calculator (Responsive)</title>
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    :root{
+      --bg:#0f1220; --panel:#171a2a; --panel-2:#1f2340; --text:#e8ebff; --muted:#a9b0d6;
+      --accent:#6c8cff; --accent-2:#4fe3c1; --danger:#ff6b6b; --warn:#ffd166;
+      --ok:#7ae582; --border:#2a3057; --chip:#262b55; --shadow:0 6px 22px rgba(0,0,0,.35);
+      --radius:16px;
+      --space:clamp(10px, 1.2vw, 16px);
+      --fs: clamp(14px, 1.2vw + .4rem, 16px);
+      --fs-sm: clamp(12px, 1vw + .25rem, 13px);
+      --fs-lg: clamp(18px, 1.6vw + .6rem, 22px);
+      --col-gap: clamp(10px, 1.4vw, 16px);
+      --tap: 44px;
+    }
+    @media (prefers-color-scheme: light){
+      :root{ --bg:#f7f8ff; --panel:#fff; --panel-2:#f3f6ff; --text:#111528; --muted:#4a5680; --border:#dfe3f8; --chip:#eef1ff; --shadow:0 6px 20px rgba(0,0,0,.06) }
+      body{ background: radial-gradient(1200px 900px at 15% 5%, #eef2ff 0%, #f7f8ff 40%, #f7f8ff 100%) }
+      input, select{ background:#fff }
+      .chip{ background:#fff }
+      .pill{ background:#fff }
+      .switch{ background:#f3f6ff }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      font-size:var(--fs);
+      background: radial-gradient(1200px 900px at 15% 5%, #1b1f37 0%, #0f1220 40%, #0f1220 100%);
+      color:var(--text);
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .wrap{max-width:1100px; margin:calc(var(--space) * 2) auto; padding:0 var(--space)}
+    header{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--space); margin-bottom:var(--space)}
+    h1{font-size:var(--fs-lg); margin:0; letter-spacing:.2px}
+    .badge{background:var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; color:var(--muted); font-size:var(--fs-sm)}
+    .grid{display:grid; gap:var(--col-gap); grid-template-columns:1fr}
+    @media(min-width:980px){ .grid{grid-template-columns: 1.2fr .8fr} }
+    .card{background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .card h2{margin:0; font-size:clamp(15px,1vw + .5rem,18px); padding:12px var(--space); border-bottom:1px solid var(--border); color:#cfd6ff}
+    @media (prefers-color-scheme: light){ .card h2{color:#2c3370} }
+    .card .body{padding:var(--space)}
+    .row, .row-3, .row-4{display:grid; gap:12px}
+    .row{grid-template-columns:1fr}
+    .row-3{grid-template-columns:1fr}
+    .row-4{grid-template-columns:1fr}
+    @media(min-width:680px){
+      .row{grid-template-columns:1fr 1fr}
+      .row-3{grid-template-columns:repeat(3,1fr)}
+      .row-4{grid-template-columns:repeat(4,1fr)}
+    }
+    label{display:block; font-size:var(--fs-sm); color:var(--muted); margin-bottom:6px}
+    input, select{
+      width:100%; padding:14px 12px; border-radius:12px; border:1px solid var(--border);
+      background:#0e1122; color:var(--text); outline:none; min-height:var(--tap);
+    }
+    input::placeholder{color:#6f76a5}
+    .help{font-size:var(--fs-sm); color:#9aa2d0}
+    .tools{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
+    button{
+      appearance:none; border:none; padding:12px 16px; border-radius:12px; cursor:pointer;
+      background:var(--accent); color:#fff; font-weight:600; box-shadow:0 4px 16px rgba(108,140,255,.35); min-height:var(--tap);
+      touch-action:manipulation;
+    }
+    button.secondary{background:#252a52; color:#cad1ff; box-shadow:none; border:1px solid var(--border)}
+    button.ghost{background:transparent; color:#cad1ff; border:1px dashed var(--border)}
+    button.warn{background:var(--danger)}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:#121633; border:1px solid var(--border); color:#cdd3ff; font-size:var(--fs-sm)}
+    .switch{display:flex; gap:8px; background:#0e1230; border:1px solid var(--border); padding:6px; border-radius:12px; width:max-content}
+    .switch button{padding:10px 14px; background:transparent; box-shadow:none; color:#b8c1ff}
+    .switch button.active{background:var(--accent); color:white; border-radius:8px}
+    .stat{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media(min-width:680px){ .stat{grid-template-columns:repeat(4,1fr)} }
+    .metric{background:#101540; border:1px solid var(--border); border-radius:12px; padding:12px}
+    .metric .k{font-weight:700; font-size:clamp(16px, 1.2vw + .6rem, 20px); color:#fff; word-break:break-word}
+    .metric .t{font-size:var(--fs-sm); color:#a9b0d6}
+    .ok{color:var(--ok)}
+    .bad{color:var(--danger)}
+    .muted{color:#9aa2d0}
+    .footer{font-size:var(--fs-sm); color:#8d94c7; margin-top:10px}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px}
+    .chip{background:#10163b; border:1px solid var(--border); padding:8px 10px; border-radius:10px; font-size:var(--fs-sm); color:#cdd3ff; cursor:pointer}
+    .tp-list{display:flex; flex-direction:column; gap:10px}
+    .tp-row{display:grid; grid-template-columns:1fr; gap:8px}
+    .tp-row .actions{display:flex; gap:8px}
+    @media(min-width:520px){ .tp-row{grid-template-columns:1fr auto} }
+    .note{font-size:var(--fs-sm); color:#97a0d8; margin-top:8px}
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+    .error{color:var(--danger); font-size:var(--fs-sm); margin-top:6px}
+    .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px dashed var(--border); border-radius:12px}
+    table{min-width:560px; width:100%; border-collapse:collapse; font-size:clamp(13px, .9vw + .45rem, 14px); background:transparent}
+    th,td{padding:10px 8px; border-bottom:1px dashed var(--border); text-align:right; white-space:nowrap}
+    th:first-child, td:first-child{text-align:left}
+    th{font-weight:600; color:#cfd6ff}
+    @media (prefers-color-scheme: light){ th{color:#2c3370} }
+    /* Reduce motion preference */
+    @media (prefers-reduced-motion: reduce){
+      *{scroll-behavior:auto; transition:none !important; animation:none !important}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+        <h1>TradeFocus — Position & Risk Calculator</h1>
+        <span class="badge">Linear (USDT-M)</span>
+      </div>
+      <div class="switch" role="tablist" aria-label="Position side">
+        <button id="btnLong" class="active" aria-selected="true">Long</button>
+        <button id="btnShort" aria-selected="false">Short</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- INPUTS -->
+      <section class="card" aria-labelledby="inputsTitle">
+        <h2 id="inputsTitle">Thông số vào lệnh</h2>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label for="margin">Tiền ký quỹ (M)</label>
+              <input id="margin" type="number" inputmode="decimal" placeholder="vd: 100" min="0" step="any">
+            </div>
+            <div>
+              <label for="entry">Giá vào lệnh (E)</label>
+              <input id="entry" type="number" inputmode="decimal" placeholder="vd: 10" min="0" step="any">
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="stop">Giá dừng lỗ (SL)</label>
+              <input id="stop" type="number" inputmode="decimal" placeholder="vd: 9 (Long) / 11 (Short)" min="0" step="any">
+            </div>
+            <div>
+              <label for="lev">Đòn bẩy (L) <span class="muted">(tuỳ chọn nếu đã nhập R)</span></label>
+              <input id="lev" type="number" inputmode="decimal" placeholder="vd: 5" min="0" step="any">
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="risk">Tiền chịu lỗ (R) <span class="muted">(tuỳ chọn nếu đã nhập L)</span></label>
+              <input id="risk" type="number" inputmode="decimal" placeholder="vd: 20" min="0" step="any">
+            </div>
+            <div>
+              <label for="qty">Khối lượng (Q) <span class="muted">(tự tính, có thể ghi đè)</span></label>
+              <input id="qty" type="number" inputmode="decimal" placeholder="auto" min="0" step="any">
+            </div>
+          </div>
+
+          <div class="tp-list" id="tpList" aria-live="polite">
+            <label>Giá chốt lời TP (có thể để trống)</label>
+            <div class="tp-row">
+              <input class="tp" type="number" inputmode="decimal" placeholder="TP1" step="any">
+              <div class="actions">
+                <button class="secondary" id="addTP" type="button">+ Thêm TP</button>
+                <button class="ghost" id="clearTP" type="button">Xoá tất cả TP</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tools">
+            <button id="calc" type="button">Tính toán</button>
+            <button id="reset" class="secondary" type="button">Reset</button>
+            <button id="sample" class="ghost" type="button">Ví dụ mẫu</button>
+            <span class="pill" id="consistencyPill" title="So khớp giữa L và R">Khớp L & R: <b id="consistencyTxt">—</b></span>
+          </div>
+          <div id="err" class="error" role="alert" aria-live="assertive"></div>
+          <div class="note">Mẹo: Nhập <b>R</b> để “khoá rủi ro”, công cụ sẽ tự tính <b>L</b>, <b>Q</b>. Hoặc nhập <b>L</b> để tính <b>R</b> & <b>Q</b>. Bạn cũng có thể ghi đè <b>Q</b> trực tiếp.</div>
+        </div>
+      </section>
+
+      <!-- OUTPUTS -->
+      <section class="card" aria-labelledby="outputsTitle">
+        <h2 id="outputsTitle">Kết quả</h2>
+        <div class="body">
+          <div class="stat">
+            <div class="metric">
+              <div class="t">Tỷ lệ di chuyển tới SL</div>
+              <div class="k"><span id="moveSL">—</span> <span class="muted">%</span></div>
+            </div>
+            <div class="metric">
+              <div class="t">Đòn bẩy (L)</div>
+              <div class="k" id="outLev">—</div>
+            </div>
+            <div class="metric">
+              <div class="t">Khối lượng (Q)</div>
+              <div class="k" id="outQty">—</div>
+            </div>
+            <div class="metric">
+              <div class="t">Giá trị danh nghĩa</div>
+              <div class="k"><span id="outNotional">—</span> <span class="muted">USDT</span></div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <div class="metric">
+              <div class="t">ROI nếu chạm SL</div>
+              <div class="k bad"><span id="roiStop">—</span> <span class="muted">%</span></div>
+            </div>
+            <div class="metric">
+              <div class="t">Tiền chịu lỗ (R)</div>
+              <div class="k bad"><span id="outRisk">—</span> <span class="muted">USDT</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px">
+            <div class="help">Bảng TP (kéo ngang nếu tràn khung trên màn hình nhỏ)</div>
+            <div class="chips" style="justify-content:flex-start">
+              <span class="chip" data-fill="tp:0.5">TP = E ± 0.5×ΔSL</span>
+              <span class="chip" data-fill="tp:1">TP = E ± 1×ΔSL</span>
+              <span class="chip" data-fill="tp:2">TP = E ± 2×ΔSL</span>
+            </div>
+            <div class="table-wrap" style="margin-top:8px">
+              <table id="tpTable" style="display:none">
+                <thead>
+                  <tr>
+                    <th>TP</th>
+                    <th>Di chuyển</th>
+                    <th>PNL</th>
+                    <th>ROI</th>
+                    <th>R:R</th>
+                  </tr>
+                </thead>
+                <tbody id="tpBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="footer">Lưu ý: Giá thanh lý còn phụ thuộc maintenance margin và phí sàn.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    const els = {
+      sideLong: $('#btnLong'),
+      sideShort: $('#btnShort'),
+      margin: $('#margin'),
+      entry: $('#entry'),
+      stop: $('#stop'),
+      lev: $('#lev'),
+      risk: $('#risk'),
+      qty: $('#qty'),
+      tpList: $('#tpList'),
+      addTP: $('#addTP'),
+      clearTP: $('#clearTP'),
+      chips: $$('.chip'),
+      calc: $('#calc'),
+      reset: $('#reset'),
+      sample: $('#sample'),
+      err: $('#err'),
+      moveSL: $('#moveSL'),
+      outLev: $('#outLev'),
+      outQty: $('#outQty'),
+      outNotional: $('#outNotional'),
+      roiStop: $('#roiStop'),
+      outRisk: $('#outRisk'),
+      tpTable: $('#tpTable'),
+      tpBody: $('#tpBody'),
+      consistencyTxt: $('#consistencyTxt'),
+      consistencyPill: $('#consistencyPill'),
+    };
+
+    let side = +1; // +1 long, -1 short
+
+    function number(v){
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function fmt(n, digits=4){
+      if(n === null || !Number.isFinite(n)) return '—';
+      const abs = Math.abs(n);
+      if(abs >= 100000) return n.toLocaleString(undefined,{maximumFractionDigits:0});
+      if(abs >= 1000) return n.toLocaleString(undefined,{maximumFractionDigits:2});
+      return n.toLocaleString(undefined,{maximumFractionDigits:digits});
+    }
+
+    function readTPs(){
+      return $$('.tp').map(i => number(i.value)).filter(v => v !== null && iNotEmpty(i.value));
+    }
+    function iNotEmpty(v){ return v !== null && v !== '' }
+
+    function addTpInput(val=''){
+      const row = document.createElement('div');
+      row.className = 'tp-row';
+      row.innerHTML = `
+        <input class="tp" type="number" inputmode="decimal" placeholder="TP" step="any" value="${val}">
+        <div class="actions">
+          <button type="button" class="secondary btnDel">Xoá</button>
+        </div>`;
+      els.tpList.appendChild(row);
+      $('.btnDel', row).addEventListener('click', () => row.remove());
+    }
+
+    function clearTPs(){
+      $$('.tp').forEach((el, idx) => { if(idx>0) el.closest('.tp-row').remove(); else el.value=''; });
+    }
+
+    function store(){
+      const data = {
+        side,
+        margin: els.margin.value,
+        entry: els.entry.value,
+        stop: els.stop.value,
+        lev: els.lev.value,
+        risk: els.risk.value,
+        qty: els.qty.value,
+        tps: $$('.tp').map(i=>i.value)
+      };
+      try{ localStorage.setItem('tf_calc_v2', JSON.stringify(data)); }catch(e){}
+    }
+
+    function restore(){
+      const raw = localStorage.getItem('tf_calc_v2') || localStorage.getItem('tf_calc_v1');
+      if(!raw) return;
+      try{
+        const d = JSON.parse(raw);
+        side = d.side ?? 1;
+        els.margin.value = d.margin ?? '';
+        els.entry.value = d.entry ?? '';
+        els.stop.value = d.stop ?? '';
+        els.lev.value = d.lev ?? '';
+        els.risk.value = d.risk ?? '';
+        els.qty.value = d.qty ?? '';
+        clearTPs();
+        const arr = Array.isArray(d.tps) ? d.tps : [];
+        if(arr.length){
+          $$('.tp')[0].value = arr[0] ?? '';
+          for(let i=1;i<arr.length;i++) addTpInput(arr[i]);
+        }
+        setSide(side);
+      }catch(e){}
+    }
+
+    function setSide(s){
+      side = s;
+      els.sideLong.classList.toggle('active', side===+1);
+      els.sideShort.classList.toggle('active', side===-1);
+      els.sideLong.setAttribute('aria-selected', side===+1);
+      els.sideShort.setAttribute('aria-selected', side===-1);
+    }
+
+    function calc(){
+      els.err.textContent = '';
+      const M = number(els.margin.value);
+      const E = number(els.entry.value);
+      const SL = number(els.stop.value);
+      let L = number(els.lev.value);
+      let R = number(els.risk.value);
+      let Q = number(els.qty.value);
+      const tps = readTPs();
+
+      if(!M || !E || !SL){
+        els.err.textContent = 'Vui lòng nhập tối thiểu: Ký quỹ (M), Giá vào (E), SL.';
+        return;
+      }
+      if(E<=0){ els.err.textContent='Giá vào (E) phải > 0.'; return; }
+
+      const dSL = Math.abs(SL - E);
+      if(dSL<=0){ els.err.textContent='SL phải khác E.'; return; }
+      const moveSL = dSL / E; // ratio
+
+      // Core logic:
+      if(Q && Q>0){
+        R = Q * dSL;
+        L = (Q * E) / M;
+      }else if(R && R>0){
+        Q = R / dSL;
+        L = (Q * E) / M;
+      }else if(L && L>0){
+        Q = (M * L) / E;
+        R = Q * dSL;
+      }else{
+        els.err.textContent = 'Hãy nhập ít nhất một trong các giá trị: Đòn bẩy (L), Tiền chịu lỗ (R) hoặc Khối lượng (Q).';
+        return;
+      }
+
+      const N = Q * E;
+      const roiStopPct = -(R / M) * 100;
+
+      // Table for TP
+      const rows = [];
+      for(const tp of tps){
+        if(tp===null) continue;
+        const pnl = side * Q * (tp - E);
+        const roi = (pnl / M) * 100;
+        const rr = Math.abs(tp - E) / dSL;
+        const move = ((tp - E) / E) * 100 * side;
+        rows.push({tp, pnl, roi, rr, move});
+      }
+
+      // Consistency if user provided both L and R manually
+      let consistentTxt = '—';
+      const inputL = number(els.lev.value);
+      const inputR = number(els.risk.value);
+      if(inputL && inputR){
+        const R_from_L = M * inputL * moveSL;
+        const delta = Math.abs(R_from_L - inputR);
+        const pct = (delta / Math.max(inputR, 1e-9)) * 100;
+        consistentTxt = pct<=1 ? 'OK (≤1% lệch)' : (pct<=5 ? 'Gần đúng (≤5%)' : 'Lệch nhiều');
+      }
+      els.consistencyTxt.textContent = consistentTxt;
+      els.consistencyPill.title = `Độ khớp giữa R và L theo công thức R = M × L × |SL−E|/E`;
+
+      // Render outputs
+      els.moveSL.textContent = fmt(moveSL*100, 3);
+      els.outLev.textContent = fmt(L, 3);
+      els.outQty.textContent = fmt(Q, 6);
+      els.outNotional.textContent = fmt(N, 2);
+      els.roiStop.textContent = fmt(roiStopPct, 2);
+      els.outRisk.textContent = fmt(R, 2);
+
+      // TP table
+      els.tpBody.innerHTML = '';
+      if(rows.length){
+        els.tpTable.style.display = '';
+        for(const r of rows){
+          const tr = document.createElement('tr');
+          const cls = r.pnl >= 0 ? 'ok' : 'bad';
+          tr.innerHTML = `
+            <td>${fmt(r.tp,6)}</td>
+            <td class="${r.move>=0?'ok':'bad'}">${fmt(r.move,2)}%</td>
+            <td class="${cls}">${fmt(r.pnl,2)} USDT</td>
+            <td class="${cls}">${fmt(r.roi,2)}%</td>
+            <td>${fmt(r.rr,2)} : 1</td>`;
+          els.tpBody.appendChild(tr);
+        }
+      }else{
+        els.tpTable.style.display = 'none';
+      }
+
+      store();
+    }
+
+    // Quick fills
+    function fillSample(){
+      els.margin.value = 100;
+      setSide(+1);
+      els.entry.value = 10;
+      els.stop.value = 9;
+      els.risk.value = 20;
+      els.lev.value = '';
+      els.qty.value = '';
+      clearTPs();
+      $$('.tp')[0].value = 11;
+      addTpInput(12);
+      addTpInput('');
+      calc();
+    }
+
+    function applyChip(chip){
+      const type = chip.getAttribute('data-fill');
+      const E = number(els.entry.value);
+      const SL = number(els.stop.value);
+      if(!E || !SL) return;
+      const dSL = Math.abs(SL - E);
+      if(type.startsWith('tp:')){
+        const k = parseFloat(type.split(':')[1]);
+        const dir = side; // favorable direction
+        const tp = E + dir * k * dSL;
+        addTpInput(tp);
+      }
+    }
+
+    // Events
+    els.sideLong.addEventListener('click', ()=> setSide(+1));
+    els.sideShort.addEventListener('click', ()=> setSide(-1));
+    els.addTP.addEventListener('click', ()=> addTpInput(''));
+    els.clearTP.addEventListener('click', clearTPs);
+    els.calc.addEventListener('click', calc);
+    els.reset.addEventListener('click', ()=>{ try{localStorage.removeItem('tf_calc_v2'); localStorage.removeItem('tf_calc_v1');}catch(e){} location.reload(); });
+    els.sample.addEventListener('click', fillSample);
+    els.chips.forEach(ch=> ch.addEventListener('click', ()=> applyChip(ch)));
+
+    // Auto-calc on Enter in inputs
+    ['margin','entry','stop','lev','risk','qty'].forEach(id=>{
+      $('#'+id).addEventListener('keydown', e=>{ if(e.key==='Enter') calc(); });
+    });
+
+    // Auto add extra TP rows when last TP is filled
+    els.tpList.addEventListener('input', (e)=>{
+      if(e.target.classList.contains('tp')){
+        const tps = $$('.tp');
+        if(tps.length && tps[tps.length-1].value !== ''){
+          addTpInput('');
+        }
+      }
+    });
+
+    restore();
+  </script>
+</body>
+</html>
