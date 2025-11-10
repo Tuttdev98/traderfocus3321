@@ -2,114 +2,83 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>TradeFocus — Position & Risk Calculator (Responsive)</title>
-  <meta name="color-scheme" content="dark light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TradeFocus — Position & Risk Calculator</title>
   <style>
     :root{
       --bg:#0f1220; --panel:#171a2a; --panel-2:#1f2340; --text:#e8ebff; --muted:#a9b0d6;
       --accent:#6c8cff; --accent-2:#4fe3c1; --danger:#ff6b6b; --warn:#ffd166;
       --ok:#7ae582; --border:#2a3057; --chip:#262b55; --shadow:0 6px 22px rgba(0,0,0,.35);
       --radius:16px;
-      --space:clamp(10px, 1.2vw, 16px);
-      --fs: clamp(14px, 1.2vw + .4rem, 16px);
-      --fs-sm: clamp(12px, 1vw + .25rem, 13px);
-      --fs-lg: clamp(18px, 1.6vw + .6rem, 22px);
-      --col-gap: clamp(10px, 1.4vw, 16px);
-      --tap: 44px;
-    }
-    @media (prefers-color-scheme: light){
-      :root{ --bg:#f7f8ff; --panel:#fff; --panel-2:#f3f6ff; --text:#111528; --muted:#4a5680; --border:#dfe3f8; --chip:#eef1ff; --shadow:0 6px 20px rgba(0,0,0,.06) }
-      body{ background: radial-gradient(1200px 900px at 15% 5%, #eef2ff 0%, #f7f8ff 40%, #f7f8ff 100%) }
-      input, select{ background:#fff }
-      .chip{ background:#fff }
-      .pill{ background:#fff }
-      .switch{ background:#f3f6ff }
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      font-size:var(--fs);
       background: radial-gradient(1200px 900px at 15% 5%, #1b1f37 0%, #0f1220 40%, #0f1220 100%);
       color:var(--text);
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
-    .wrap{max-width:1100px; margin:calc(var(--space) * 2) auto; padding:0 var(--space)}
-    header{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--space); margin-bottom:var(--space)}
-    h1{font-size:var(--fs-lg); margin:0; letter-spacing:.2px}
-    .badge{background:var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; color:var(--muted); font-size:var(--fs-sm)}
-    .grid{display:grid; gap:var(--col-gap); grid-template-columns:1fr}
+    .wrap{max-width:1100px; margin:32px auto; padding:0 16px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px}
+    h1{font-size:22px; margin:0; letter-spacing:.2px}
+    .badge{background:var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; color:var(--muted); font-size:12px}
+    .grid{display:grid; gap:16px}
     @media(min-width:980px){ .grid{grid-template-columns: 1.2fr .8fr} }
     .card{background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
-    .card h2{margin:0; font-size:clamp(15px,1vw + .5rem,18px); padding:12px var(--space); border-bottom:1px solid var(--border); color:#cfd6ff}
-    @media (prefers-color-scheme: light){ .card h2{color:#2c3370} }
-    .card .body{padding:var(--space)}
-    .row, .row-3, .row-4{display:grid; gap:12px}
-    .row{grid-template-columns:1fr}
-    .row-3{grid-template-columns:1fr}
-    .row-4{grid-template-columns:1fr}
-    @media(min-width:680px){
-      .row{grid-template-columns:1fr 1fr}
-      .row-3{grid-template-columns:repeat(3,1fr)}
-      .row-4{grid-template-columns:repeat(4,1fr)}
-    }
-    label{display:block; font-size:var(--fs-sm); color:var(--muted); margin-bottom:6px}
+    .card h2{margin:0; font-size:16px; padding:14px 16px; border-bottom:1px solid var(--border); color:#cfd6ff}
+    .card .body{padding:16px}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .row-3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+    .row-4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
     input, select{
-      width:100%; padding:14px 12px; border-radius:12px; border:1px solid var(--border);
-      background:#0e1122; color:var(--text); outline:none; min-height:var(--tap);
+      width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--border);
+      background:#0e1122; color:var(--text); outline:none;
     }
     input::placeholder{color:#6f76a5}
-    .help{font-size:var(--fs-sm); color:#9aa2d0}
+    .help{font-size:12px; color:#9aa2d0}
     .tools{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
     button{
-      appearance:none; border:none; padding:12px 16px; border-radius:12px; cursor:pointer;
-      background:var(--accent); color:#fff; font-weight:600; box-shadow:0 4px 16px rgba(108,140,255,.35); min-height:var(--tap);
-      touch-action:manipulation;
+      appearance:none; border:none; padding:10px 14px; border-radius:12px; cursor:pointer;
+      background:var(--accent); color:#fff; font-weight:600; box-shadow:0 4px 16px rgba(108,140,255,.35);
     }
     button.secondary{background:#252a52; color:#cad1ff; box-shadow:none; border:1px solid var(--border)}
     button.ghost{background:transparent; color:#cad1ff; border:1px dashed var(--border)}
     button.warn{background:var(--danger)}
-    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:#121633; border:1px solid var(--border); color:#cdd3ff; font-size:var(--fs-sm)}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:#121633; border:1px solid var(--border); color:#cdd3ff; font-size:12px}
     .switch{display:flex; gap:8px; background:#0e1230; border:1px solid var(--border); padding:6px; border-radius:12px; width:max-content}
-    .switch button{padding:10px 14px; background:transparent; box-shadow:none; color:#b8c1ff}
+    .switch button{padding:8px 12px; background:transparent; box-shadow:none; color:#b8c1ff}
     .switch button.active{background:var(--accent); color:white; border-radius:8px}
-    .stat{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th,td{padding:10px 8px; border-bottom:1px dashed var(--border); text-align:right}
+    th:first-child, td:first-child{text-align:left}
+    th{font-weight:600; color:#cfd6ff}
+    .stat{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
     @media(min-width:680px){ .stat{grid-template-columns:repeat(4,1fr)} }
     .metric{background:#101540; border:1px solid var(--border); border-radius:12px; padding:12px}
-    .metric .k{font-weight:700; font-size:clamp(16px, 1.2vw + .6rem, 20px); color:#fff; word-break:break-word}
-    .metric .t{font-size:var(--fs-sm); color:#a9b0d6}
+    .metric .k{font-weight:700; font-size:18px; color:#fff}
+    .metric .t{font-size:12px; color:#a9b0d6}
     .ok{color:var(--ok)}
     .bad{color:var(--danger)}
     .muted{color:#9aa2d0}
-    .footer{font-size:var(--fs-sm); color:#8d94c7; margin-top:10px}
+    .footer{font-size:12px; color:#8d94c7; margin-top:10px}
     .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px}
-    .chip{background:#10163b; border:1px solid var(--border); padding:8px 10px; border-radius:10px; font-size:var(--fs-sm); color:#cdd3ff; cursor:pointer}
+    .chip{background:#10163b; border:1px solid var(--border); padding:8px 10px; border-radius:10px; font-size:12px; color:#cdd3ff; cursor:pointer}
     .tp-list{display:flex; flex-direction:column; gap:10px}
-    .tp-row{display:grid; grid-template-columns:1fr; gap:8px}
+    .tp-row{display:grid; grid-template-columns:1fr auto; gap:8px}
     .tp-row .actions{display:flex; gap:8px}
-    @media(min-width:520px){ .tp-row{grid-template-columns:1fr auto} }
-    .note{font-size:var(--fs-sm); color:#97a0d8; margin-top:8px}
+    .note{font-size:12px; color:#97a0d8; margin-top:8px}
+    .flex{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
     .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
-    .error{color:var(--danger); font-size:var(--fs-sm); margin-top:6px}
-    .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px dashed var(--border); border-radius:12px}
-    table{min-width:560px; width:100%; border-collapse:collapse; font-size:clamp(13px, .9vw + .45rem, 14px); background:transparent}
-    th,td{padding:10px 8px; border-bottom:1px dashed var(--border); text-align:right; white-space:nowrap}
-    th:first-child, td:first-child{text-align:left}
-    th{font-weight:600; color:#cfd6ff}
-    @media (prefers-color-scheme: light){ th{color:#2c3370} }
-    /* Reduce motion preference */
-    @media (prefers-reduced-motion: reduce){
-      *{scroll-behavior:auto; transition:none !important; animation:none !important}
-    }
+    .error{color:var(--danger); font-size:12px; margin-top:6px}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+      <div class="flex">
         <h1>TradeFocus — Position & Risk Calculator</h1>
-        <span class="badge">Linear (USDT-M)</span>
+        <span class="badge">Linear (USDT‑Margined)</span>
       </div>
       <div class="switch" role="tablist" aria-label="Position side">
         <button id="btnLong" class="active" aria-selected="true">Long</button>
@@ -212,26 +181,26 @@
           </div>
 
           <div style="margin-top:16px">
-            <div class="help">Bảng TP (kéo ngang nếu tràn khung trên màn hình nhỏ)</div>
-            <div class="chips" style="justify-content:flex-start">
-              <span class="chip" data-fill="tp:0.5">TP = E ± 0.5×ΔSL</span>
-              <span class="chip" data-fill="tp:1">TP = E ± 1×ΔSL</span>
-              <span class="chip" data-fill="tp:2">TP = E ± 2×ΔSL</span>
+            <div class="flex" style="justify-content:space-between">
+              <div class="help">Bảng TP (tự ẩn nếu không nhập TP)</div>
+              <div class="chips">
+                <span class="chip" data-fill="tp:0.5">TP = E ± 0.5×ΔSL</span>
+                <span class="chip" data-fill="tp:1">TP = E ± 1×ΔSL</span>
+                <span class="chip" data-fill="tp:2">TP = E ± 2×ΔSL</span>
+              </div>
             </div>
-            <div class="table-wrap" style="margin-top:8px">
-              <table id="tpTable" style="display:none">
-                <thead>
-                  <tr>
-                    <th>TP</th>
-                    <th>Di chuyển</th>
-                    <th>PNL</th>
-                    <th>ROI</th>
-                    <th>R:R</th>
-                  </tr>
-                </thead>
-                <tbody id="tpBody"></tbody>
-              </table>
-            </div>
+            <table id="tpTable" style="margin-top:8px; display:none">
+              <thead>
+                <tr>
+                  <th>TP</th>
+                  <th>Di chuyển</th>
+                  <th>PNL</th>
+                  <th>ROI</th>
+                  <th>R:R</th>
+                </tr>
+              </thead>
+              <tbody id="tpBody"></tbody>
+            </table>
           </div>
           <div class="footer">Lưu ý: Giá thanh lý còn phụ thuộc maintenance margin và phí sàn.</div>
         </div>
@@ -288,9 +257,8 @@
     }
 
     function readTPs(){
-      return $$('.tp').map(i => number(i.value)).filter(v => v !== null && iNotEmpty(i.value));
+      return $$('.tp').map(i => number(i.value)).filter(v => v !== null);
     }
-    function iNotEmpty(v){ return v !== null && v !== '' }
 
     function addTpInput(val=''){
       const row = document.createElement('div');
@@ -319,11 +287,11 @@
         qty: els.qty.value,
         tps: $$('.tp').map(i=>i.value)
       };
-      try{ localStorage.setItem('tf_calc_v2', JSON.stringify(data)); }catch(e){}
+      localStorage.setItem('tf_calc_v1', JSON.stringify(data));
     }
 
     function restore(){
-      const raw = localStorage.getItem('tf_calc_v2') || localStorage.getItem('tf_calc_v1');
+      const raw = localStorage.getItem('tf_calc_v1');
       if(!raw) return;
       try{
         const d = JSON.parse(raw);
@@ -334,6 +302,7 @@
         els.lev.value = d.lev ?? '';
         els.risk.value = d.risk ?? '';
         els.qty.value = d.qty ?? '';
+        // reset TP list to 1 input then fill
         clearTPs();
         const arr = Array.isArray(d.tps) ? d.tps : [];
         if(arr.length){
@@ -373,6 +342,7 @@
       const moveSL = dSL / E; // ratio
 
       // Core logic:
+      // If Q is given -> compute R from Q; else if R is given -> compute Q; else if L is given -> compute Q, R; else error.
       if(Q && Q>0){
         R = Q * dSL;
         L = (Q * E) / M;
@@ -397,7 +367,7 @@
         const pnl = side * Q * (tp - E);
         const roi = (pnl / M) * 100;
         const rr = Math.abs(tp - E) / dSL;
-        const move = ((tp - E) / E) * 100 * side;
+        const move = ((tp - E) / E) * 100 * side; // positive move in the favorable direction
         rows.push({tp, pnl, roi, rr, move});
       }
 
@@ -408,7 +378,7 @@
       if(inputL && inputR){
         const R_from_L = M * inputL * moveSL;
         const delta = Math.abs(R_from_L - inputR);
-        const pct = (delta / Math.max(inputR, 1e-9)) * 100;
+        const pct = (delta / inputR) * 100;
         consistentTxt = pct<=1 ? 'OK (≤1% lệch)' : (pct<=5 ? 'Gần đúng (≤5%)' : 'Lệch nhiều');
       }
       els.consistencyTxt.textContent = consistentTxt;
@@ -462,9 +432,11 @@
 
     function applyChip(chip){
       const type = chip.getAttribute('data-fill');
+      const M = number(els.margin.value);
       const E = number(els.entry.value);
       const SL = number(els.stop.value);
       if(!E || !SL) return;
+
       const dSL = Math.abs(SL - E);
       if(type.startsWith('tp:')){
         const k = parseFloat(type.split(':')[1]);
@@ -480,7 +452,7 @@
     els.addTP.addEventListener('click', ()=> addTpInput(''));
     els.clearTP.addEventListener('click', clearTPs);
     els.calc.addEventListener('click', calc);
-    els.reset.addEventListener('click', ()=>{ try{localStorage.removeItem('tf_calc_v2'); localStorage.removeItem('tf_calc_v1');}catch(e){} location.reload(); });
+    els.reset.addEventListener('click', ()=>{ localStorage.removeItem('tf_calc_v1'); location.reload(); });
     els.sample.addEventListener('click', fillSample);
     els.chips.forEach(ch=> ch.addEventListener('click', ()=> applyChip(ch)));
 
