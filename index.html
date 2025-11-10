@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TradeFocus — Position & Risk Calculator</title>
+  <title>TradeFocus — Calculator + Journal</title>
   <style>
     :root{
       --bg:#0f1220; --panel:#171a2a; --panel-2:#1f2340; --text:#e8ebff; --muted:#a9b0d6;
@@ -18,12 +18,12 @@
       background: radial-gradient(1200px 900px at 15% 5%, #1b1f37 0%, #0f1220 40%, #0f1220 100%);
       color:var(--text);
     }
-    .wrap{max-width:1100px; margin:32px auto; padding:0 16px}
+    .wrap{max-width:1200px; margin:28px auto; padding:0 16px}
     header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px}
     h1{font-size:22px; margin:0; letter-spacing:.2px}
     .badge{background:var(--chip); border:1px solid var(--border); padding:6px 10px; border-radius:999px; color:var(--muted); font-size:12px}
     .grid{display:grid; gap:16px}
-    @media(min-width:980px){ .grid{grid-template-columns: 1.2fr .8fr} }
+    @media(min-width:1080px){ .grid{grid-template-columns: 1.15fr .85fr} }
     .card{background:linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
     .card h2{margin:0; font-size:16px; padding:14px 16px; border-bottom:1px solid var(--border); color:#cfd6ff}
     .card .body{padding:16px}
@@ -31,10 +31,11 @@
     .row-3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
     .row-4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
     label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
-    input, select{
+    input, select, textarea{
       width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--border);
-      background:#0e1122; color:var(--text); outline:none;
+      background:#0e1122; color:#e8ebff; outline:none;
     }
+    textarea{min-height:72px; resize:vertical}
     input::placeholder{color:#6f76a5}
     .help{font-size:12px; color:#9aa2d0}
     .tools{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px}
@@ -67,10 +68,25 @@
     .tp-list{display:flex; flex-direction:column; gap:10px}
     .tp-row{display:grid; grid-template-columns:1fr auto; gap:8px}
     .tp-row .actions{display:flex; gap:8px}
-    .note{font-size:12px; color:#97a0d8; margin-top:8px}
     .flex{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
-    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
     .error{color:var(--danger); font-size:12px; margin-top:6px}
+    /* Journal */
+    .toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px}
+    .tag{font-size:12px; color:#cfd6ff; background:#11163a; border:1px solid var(--border); padding:6px 10px; border-radius:999px}
+    .actions-row{display:flex; gap:8px}
+    .mini{font-size:12px; padding:6px 10px; border-radius:8px}
+    .right{justify-content:flex-end}
+    .status{font-size:12px; padding:4px 8px; border-radius:999px; background:#10163b; border:1px solid var(--border)}
+    .win{color:var(--ok)} .loss{color:var(--danger)}
+    .nowrap{white-space:nowrap}
+    /* Prompt add-to-journal */
+    .promptbar{
+      position:sticky; bottom:12px; left:0; right:0; margin-top:8px;
+      background:#0d1030d9; border:1px solid var(--border); backdrop-filter: blur(6px);
+      border-radius:12px; padding:12px; display:none; gap:10px; align-items:center; justify-content:space-between;
+    }
+    .modal{position:fixed; inset:0; backdrop-filter: blur(2px); display:none; align-items:center; justify-content:center}
+    .modal .box{max-width:620px; background:#14183a; border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:16px}
   </style>
 </head>
 <body>
@@ -78,7 +94,7 @@
     <header>
       <div class="flex">
         <h1>TradeFocus — Position & Risk Calculator</h1>
-        <span class="badge">Linear (USDT‑Margined)</span>
+        <span class="badge">Linear (USDT-Margined)</span>
       </div>
       <div class="switch" role="tablist" aria-label="Position side">
         <button id="btnLong" class="active" aria-selected="true">Long</button>
@@ -91,7 +107,7 @@
       <section class="card" aria-labelledby="inputsTitle">
         <h2 id="inputsTitle">Thông số vào lệnh</h2>
         <div class="body">
-          <div class="row">
+          <div class="row-3">
             <div>
               <label for="margin">Tiền ký quỹ (M)</label>
               <input id="margin" type="number" inputmode="decimal" placeholder="vd: 100" min="0" step="any">
@@ -99,6 +115,10 @@
             <div>
               <label for="entry">Giá vào lệnh (E)</label>
               <input id="entry" type="number" inputmode="decimal" placeholder="vd: 10" min="0" step="any">
+            </div>
+            <div>
+              <label for="symbol">Tên Coin</label>
+              <input id="symbol" type="text" placeholder="vd: BTCUSDT, ETHUSDT" maxlength="20">
             </div>
           </div>
 
@@ -115,7 +135,7 @@
 
           <div class="row">
             <div>
-              <label for="risk">Tiền chịu lỗ (R) <span class="muted">(tuỳ chọn nếu đã nhập L)</span></label>
+              <label for="risk">Tiền chịu lỗ (R) <span class="muted">(tuỳ chọn nếu đã nhập L hoặc Q)</span></label>
               <input id="risk" type="number" inputmode="decimal" placeholder="vd: 20" min="0" step="any">
             </div>
             <div>
@@ -143,6 +163,15 @@
           </div>
           <div id="err" class="error" role="alert" aria-live="assertive"></div>
           <div class="note">Mẹo: Nhập <b>R</b> để “khoá rủi ro”, công cụ sẽ tự tính <b>L</b>, <b>Q</b>. Hoặc nhập <b>L</b> để tính <b>R</b> & <b>Q</b>. Bạn cũng có thể ghi đè <b>Q</b> trực tiếp.</div>
+
+          <!-- Add-to-journal prompt -->
+          <div id="promptAdd" class="promptbar">
+            <div><b>Thêm vào Nhật ký giao dịch?</b> <span class="muted">(sẽ lưu vào trình duyệt của bạn)</span></div>
+            <div class="actions-row">
+              <button id="btnAddJournal" class="mini">Thêm</button>
+              <button id="btnCancelAdd" class="mini secondary">Bỏ qua</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -206,12 +235,101 @@
         </div>
       </section>
     </div>
+
+    <!-- JOURNAL -->
+    <section class="card" style="margin-top:16px" aria-labelledby="journalTitle">
+      <h2 id="journalTitle">Nhật ký giao dịch</h2>
+      <div class="body">
+        <div class="toolbar">
+          <span class="tag">Lưu tại: <b>localStorage</b></span>
+          <label class="sr-only" for="range">Khoảng thời gian</label>
+          <input id="dateFrom" type="date" class="mini"> đến <input id="dateTo" type="date" class="mini">
+          <select id="groupUnit" class="mini">
+            <option value="day">Nhóm theo Ngày</option>
+            <option value="week">Nhóm theo Tuần</option>
+            <option value="month">Nhóm theo Tháng</option>
+            <option value="year">Nhóm theo Năm</option>
+          </select>
+          <button id="btnFilter" class="mini secondary">Lọc</button>
+          <span class="flex right" style="flex:1"></span>
+          <button id="btnExportCSV" class="mini ghost">Xuất CSV</button>
+          <button id="btnExportJSON" class="mini ghost">Xuất JSON</button>
+          <button id="btnImport" class="mini secondary">Nhập JSON</button>
+          <input id="importFile" type="file" accept=".json" style="display:none">
+        </div>
+
+        <div class="stat" id="stats">
+          <div class="metric"><div class="t">Số lệnh</div><div class="k" id="sTrades">0</div></div>
+          <div class="metric"><div class="t">Tỷ lệ thắng</div><div class="k" id="sWinrate">0%</div></div>
+          <div class="metric"><div class="t">PNL ròng</div><div class="k" id="sNet">0</div></div>
+          <div class="metric"><div class="t">Expectancy / lệnh</div><div class="k" id="sExp">0</div></div>
+        </div>
+
+        <div style="margin-top:10px; overflow:auto">
+          <table id="journalTable">
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>Coin</th>
+                <th>Side</th>
+                <th class="nowrap">E / SL</th>
+                <th class="nowrap">Q / L</th>
+                <th>R</th>
+                <th>TPs</th>
+                <th>Kết quả</th>
+                <th>Ghi chú</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="journalBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal" aria-hidden="true">
+    <div class="box">
+      <h3 style="margin:0 0 8px 0">Sửa giao dịch</h3>
+      <div class="row-4">
+        <div>
+          <label>Exit Price (tuỳ chọn)</label>
+          <input id="editExit" type="number" step="any" placeholder="vd: TP đã khớp">
+        </div>
+        <div>
+          <label>Kết quả</label>
+          <select id="editResult">
+            <option value="">—</option>
+            <option value="win">Win</option>
+            <option value="loss">Loss</option>
+          </select>
+        </div>
+        <div>
+          <label>Chọn TP đạt</label>
+          <input id="editTPHit" type="number" step="any" placeholder="vd: 11.5">
+        </div>
+        <div>
+          <label>Tên Coin</label>
+          <input id="editSymbol" type="text" placeholder="vd: BTCUSDT">
+        </div>
+      </div>
+      <label style="margin-top:8px">Ghi chú</label>
+      <textarea id="editNote" placeholder="Nhận xét sau lệnh..."></textarea>
+      <div class="actions-row right" style="margin-top:10px">
+        <button id="btnSaveEdit" class="mini">Lưu</button>
+        <button id="btnCancelEdit" class="mini secondary">Đóng</button>
+      </div>
+    </div>
   </div>
 
   <script>
     const $ = (sel, root=document) => root.querySelector(sel);
     const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const KEY_INPUTS = 'tf_calc_v1';
+    const KEY_JOURNAL = 'tf_journal_v1';
 
+    // ====== Calculator ======
     const els = {
       sideLong: $('#btnLong'),
       sideShort: $('#btnShort'),
@@ -221,6 +339,7 @@
       lev: $('#lev'),
       risk: $('#risk'),
       qty: $('#qty'),
+      symbol: $('#symbol'),
       tpList: $('#tpList'),
       addTP: $('#addTP'),
       clearTP: $('#clearTP'),
@@ -239,15 +358,15 @@
       tpBody: $('#tpBody'),
       consistencyTxt: $('#consistencyTxt'),
       consistencyPill: $('#consistencyPill'),
+      promptAdd: $('#promptAdd'),
+      btnAddJournal: $('#btnAddJournal'),
+      btnCancelAdd: $('#btnCancelAdd'),
     };
 
     let side = +1; // +1 long, -1 short
+    let lastCalcSnapshot = null;
 
-    function number(v){
-      const n = parseFloat(v);
-      return Number.isFinite(n) ? n : null;
-    }
-
+    function number(v){ const n = parseFloat(v); return Number.isFinite(n) ? n : null; }
     function fmt(n, digits=4){
       if(n === null || !Number.isFinite(n)) return '—';
       const abs = Math.abs(n);
@@ -255,11 +374,7 @@
       if(abs >= 1000) return n.toLocaleString(undefined,{maximumFractionDigits:2});
       return n.toLocaleString(undefined,{maximumFractionDigits:digits});
     }
-
-    function readTPs(){
-      return $$('.tp').map(i => number(i.value)).filter(v => v !== null);
-    }
-
+    function readTPs(){ return $$('.tp').map(i => number(i.value)).filter(v => v !== null); }
     function addTpInput(val=''){
       const row = document.createElement('div');
       row.className = 'tp-row';
@@ -268,30 +383,21 @@
         <div class="actions">
           <button type="button" class="secondary btnDel">Xoá</button>
         </div>`;
-      els.tpList.appendChild(row);
+      $('#tpList').appendChild(row);
       $('.btnDel', row).addEventListener('click', () => row.remove());
     }
-
-    function clearTPs(){
-      $$('.tp').forEach((el, idx) => { if(idx>0) el.closest('.tp-row').remove(); else el.value=''; });
-    }
-
-    function store(){
+    function clearTPs(){ $$('.tp').forEach((el, idx) => { if(idx>0) el.closest('.tp-row').remove(); else el.value=''; }); }
+    function storeInputs(){
       const data = {
         side,
-        margin: els.margin.value,
-        entry: els.entry.value,
-        stop: els.stop.value,
-        lev: els.lev.value,
-        risk: els.risk.value,
-        qty: els.qty.value,
-        tps: $$('.tp').map(i=>i.value)
+        margin: els.margin.value, entry: els.entry.value, stop: els.stop.value,
+        lev: els.lev.value, risk: els.risk.value, qty: els.qty.value,
+        symbol: els.symbol.value, tps: $$('.tp').map(i=>i.value)
       };
-      localStorage.setItem('tf_calc_v1', JSON.stringify(data));
+      localStorage.setItem(KEY_INPUTS, JSON.stringify(data));
     }
-
-    function restore(){
-      const raw = localStorage.getItem('tf_calc_v1');
+    function restoreInputs(){
+      const raw = localStorage.getItem(KEY_INPUTS);
       if(!raw) return;
       try{
         const d = JSON.parse(raw);
@@ -302,7 +408,7 @@
         els.lev.value = d.lev ?? '';
         els.risk.value = d.risk ?? '';
         els.qty.value = d.qty ?? '';
-        // reset TP list to 1 input then fill
+        els.symbol.value = d.symbol ?? '';
         clearTPs();
         const arr = Array.isArray(d.tps) ? d.tps : [];
         if(arr.length){
@@ -312,66 +418,69 @@
         setSide(side);
       }catch(e){}
     }
-
     function setSide(s){
       side = s;
-      els.sideLong.classList.toggle('active', side===+1);
-      els.sideShort.classList.toggle('active', side===-1);
-      els.sideLong.setAttribute('aria-selected', side===+1);
-      els.sideShort.setAttribute('aria-selected', side===-1);
+      $('#btnLong').classList.toggle('active', side===+1);
+      $('#btnShort').classList.toggle('active', side===-1);
+      $('#btnLong').setAttribute('aria-selected', side===+1);
+      $('#btnShort').setAttribute('aria-selected', side===-1);
     }
 
     function calc(){
-      els.err.textContent = '';
+      $('#err').textContent='';
       const M = number(els.margin.value);
       const E = number(els.entry.value);
       const SL = number(els.stop.value);
       let L = number(els.lev.value);
       let R = number(els.risk.value);
       let Q = number(els.qty.value);
+      const symbol = (els.symbol.value || '').trim().toUpperCase();
       const tps = readTPs();
 
-      if(!M || !E || !SL){
-        els.err.textContent = 'Vui lòng nhập tối thiểu: Ký quỹ (M), Giá vào (E), SL.';
-        return;
-      }
-      if(E<=0){ els.err.textContent='Giá vào (E) phải > 0.'; return; }
-
+      if(!M || !E || !SL){ $('#err').textContent='Vui lòng nhập tối thiểu: Ký quỹ (M), Giá vào (E), SL.'; return; }
+      if(E<=0){ $('#err').textContent='Giá vào (E) phải > 0.'; return; }
       const dSL = Math.abs(SL - E);
-      if(dSL<=0){ els.err.textContent='SL phải khác E.'; return; }
-      const moveSL = dSL / E; // ratio
+      if(dSL<=0){ $('#err').textContent='SL phải khác E.'; return; }
+      const moveSL = dSL / E;
 
-      // Core logic:
-      // If Q is given -> compute R from Q; else if R is given -> compute Q; else if L is given -> compute Q, R; else error.
-      if(Q && Q>0){
-        R = Q * dSL;
-        L = (Q * E) / M;
-      }else if(R && R>0){
-        Q = R / dSL;
-        L = (Q * E) / M;
-      }else if(L && L>0){
-        Q = (M * L) / E;
-        R = Q * dSL;
-      }else{
-        els.err.textContent = 'Hãy nhập ít nhất một trong các giá trị: Đòn bẩy (L), Tiền chịu lỗ (R) hoặc Khối lượng (Q).';
-        return;
-      }
+      if(Q && Q>0){ R = Q * dSL; L = (Q * E) / M; }
+      else if(R && R>0){ Q = R / dSL; L = (Q * E) / M; }
+      else if(L && L>0){ Q = (M * L) / E; R = Q * dSL; }
+      else { $('#err').textContent='Nhập ít nhất một trong: L hoặc R hoặc Q.'; return; }
 
       const N = Q * E;
       const roiStopPct = -(R / M) * 100;
 
-      // Table for TP
-      const rows = [];
-      for(const tp of tps){
-        if(tp===null) continue;
-        const pnl = side * Q * (tp - E);
-        const roi = (pnl / M) * 100;
-        const rr = Math.abs(tp - E) / dSL;
-        const move = ((tp - E) / E) * 100 * side; // positive move in the favorable direction
-        rows.push({tp, pnl, roi, rr, move});
-      }
+      // Render
+      $('#moveSL').textContent = fmt(moveSL*100,3);
+      $('#outLev').textContent = fmt(L,3);
+      $('#outQty').textContent = fmt(Q,6);
+      $('#outNotional').textContent = fmt(N,2);
+      $('#roiStop').textContent = fmt(roiStopPct,2);
+      $('#outRisk').textContent = fmt(R,2);
 
-      // Consistency if user provided both L and R manually
+      // TP rows
+      $('#tpBody').innerHTML = '';
+      if(tps.length){
+        $('#tpTable').style.display='';
+        for(const tp of tps){
+          const pnl = side * Q * (tp - E);
+          const roi = (pnl / M) * 100;
+          const rr = Math.abs(tp - E) / dSL;
+          const move = ((tp - E) / E) * 100 * side;
+          const tr = document.createElement('tr');
+          const cls = pnl >= 0 ? 'ok' : 'bad';
+          tr.innerHTML = `
+            <td>${fmt(tp,6)}</td>
+            <td class="${move>=0?'ok':'bad'}">${fmt(move,2)}%</td>
+            <td class="${cls}">${fmt(pnl,2)} USDT</td>
+            <td class="${cls}">${fmt(roi,2)}%</td>
+            <td>${fmt(rr,2)} : 1</td>`;
+          $('#tpBody').appendChild(tr);
+        }
+      } else { $('#tpTable').style.display='none'; }
+
+      // Consistency hint
       let consistentTxt = '—';
       const inputL = number(els.lev.value);
       const inputR = number(els.risk.value);
@@ -379,99 +488,290 @@
         const R_from_L = M * inputL * moveSL;
         const delta = Math.abs(R_from_L - inputR);
         const pct = (delta / inputR) * 100;
-        consistentTxt = pct<=1 ? 'OK (≤1% lệch)' : (pct<=5 ? 'Gần đúng (≤5%)' : 'Lệch nhiều');
+        consistentTxt = pct<=1 ? 'OK (≤1%)' : (pct<=5 ? 'Gần đúng (≤5%)' : 'Lệch nhiều');
       }
-      els.consistencyTxt.textContent = consistentTxt;
-      els.consistencyPill.title = `Độ khớp giữa R và L theo công thức R = M × L × |SL−E|/E`;
+      $('#consistencyTxt').textContent = consistentTxt;
+      $('#consistencyPill').title = `Độ khớp giữa R và L theo công thức R = M × L × |SL−E|/E`;
 
-      // Render outputs
-      els.moveSL.textContent = fmt(moveSL*100, 3);
-      els.outLev.textContent = fmt(L, 3);
-      els.outQty.textContent = fmt(Q, 6);
-      els.outNotional.textContent = fmt(N, 2);
-      els.roiStop.textContent = fmt(roiStopPct, 2);
-      els.outRisk.textContent = fmt(R, 2);
+      storeInputs();
 
-      // TP table
-      els.tpBody.innerHTML = '';
-      if(rows.length){
-        els.tpTable.style.display = '';
-        for(const r of rows){
-          const tr = document.createElement('tr');
-          const cls = r.pnl >= 0 ? 'ok' : 'bad';
-          tr.innerHTML = `
-            <td>${fmt(r.tp,6)}</td>
-            <td class="${r.move>=0?'ok':'bad'}">${fmt(r.move,2)}%</td>
-            <td class="${cls}">${fmt(r.pnl,2)} USDT</td>
-            <td class="${cls}">${fmt(r.roi,2)}%</td>
-            <td>${fmt(r.rr,2)} : 1</td>`;
-          els.tpBody.appendChild(tr);
-        }
-      }else{
-        els.tpTable.style.display = 'none';
-      }
-
-      store();
+      // Prepare snapshot for journal prompt
+      lastCalcSnapshot = {
+        id: 't_' + Date.now(),
+        ts: new Date().toISOString(),
+        symbol,
+        side: side===1?'Long':'Short',
+        M,E,SL,L,R,Q,N,
+        dSL, moveSLPct: moveSL*100, roiStopPct,
+        tps: tps,
+        result: '', exitPrice: null, pnl: null, roi: null, rr: null, note: ''
+      };
+      $('#promptAdd').style.display = 'flex';
     }
 
-    // Quick fills
     function fillSample(){
-      els.margin.value = 100;
-      setSide(+1);
-      els.entry.value = 10;
-      els.stop.value = 9;
-      els.risk.value = 20;
-      els.lev.value = '';
-      els.qty.value = '';
-      clearTPs();
-      $$('.tp')[0].value = 11;
-      addTpInput(12);
-      addTpInput('');
+      els.margin.value = 100; setSide(+1);
+      els.entry.value = 10; els.stop.value = 9;
+      els.symbol.value = 'BTCUSDT';
+      els.risk.value = 20; els.lev.value = ''; els.qty.value = '';
+      clearTPs(); $$('.tp')[0].value = 11; addTpInput(12); addTpInput('');
       calc();
     }
-
     function applyChip(chip){
       const type = chip.getAttribute('data-fill');
-      const M = number(els.margin.value);
-      const E = number(els.entry.value);
-      const SL = number(els.stop.value);
+      const E = number(els.entry.value), SL = number(els.stop.value);
       if(!E || !SL) return;
-
       const dSL = Math.abs(SL - E);
       if(type.startsWith('tp:')){
         const k = parseFloat(type.split(':')[1]);
-        const dir = side; // favorable direction
+        const dir = side;
         const tp = E + dir * k * dSL;
         addTpInput(tp);
       }
     }
 
-    // Events
-    els.sideLong.addEventListener('click', ()=> setSide(+1));
-    els.sideShort.addEventListener('click', ()=> setSide(-1));
-    els.addTP.addEventListener('click', ()=> addTpInput(''));
-    els.clearTP.addEventListener('click', clearTPs);
-    els.calc.addEventListener('click', calc);
-    els.reset.addEventListener('click', ()=>{ localStorage.removeItem('tf_calc_v1'); location.reload(); });
-    els.sample.addEventListener('click', fillSample);
-    els.chips.forEach(ch=> ch.addEventListener('click', ()=> applyChip(ch)));
+    // ====== Journal store & helpers ======
+    function loadJournal(){ try{ return JSON.parse(localStorage.getItem(KEY_JOURNAL) || '[]'); } catch(e){ return []; } }
+    function saveJournal(list){ localStorage.setItem(KEY_JOURNAL, JSON.stringify(list)); }
+    function addToJournal(rec){
+      const list = loadJournal();
+      list.unshift(rec);
+      saveJournal(list);
+      renderJournal();
+    }
+    window.delTrade = function(id){
+      const list = loadJournal().filter(x=>x.id!==id);
+      saveJournal(list); renderJournal();
+    }
+    window.dupeTrade = function(id){
+      const list = loadJournal();
+      const t = list.find(x=>x.id===id);
+      if(!t) return;
+      const c = JSON.parse(JSON.stringify(t));
+      c.id = 't_' + Date.now();
+      c.ts = new Date().toISOString();
+      list.unshift(c);
+      saveJournal(list); renderJournal();
+    }
+    window.markRes = function(id, res){
+      const list = loadJournal();
+      const t = list.find(x=>x.id===id);
+      if(!t) return;
+      t.result = res || '';
+      if(res==='win'){
+        const exit = (t.exitPrice!=null && t.exitPrice!=='') ? Number(t.exitPrice) : (Array.isArray(t.tps) && t.tps.length ? Number(t.tps[0]) : null);
+        if(exit!==null && Number.isFinite(exit)){
+          const pnl = (t.side==='Long'? +1 : -1) * t.Q * (exit - t.E);
+          t.pnl = pnl; t.roi = t.M ? (pnl/t.M)*100 : null;
+          t.rr = Math.abs(exit - t.E) / t.dSL;
+        } else { t.pnl = null; t.roi = null; t.rr = null; }
+      } else if(res==='loss'){
+        t.pnl = -Math.abs(t.R);
+        t.roi = t.M ? (t.pnl/t.M)*100 : null;
+        t.rr = -1;
+        t.exitPrice = t.side==='Long' ? Math.min(t.SL, t.E) : Math.max(t.SL, t.E);
+      } else {
+        t.pnl = null; t.roi = null; t.rr = null;
+      }
+      saveJournal(list); renderJournal();
+    }
+    window.editTrade = function(id){
+      const t = loadJournal().find(x=>x.id===id);
+      if(!t) return;
+      $('#editModal').style.display='flex';
+      $('#editModal').setAttribute('aria-hidden','false');
+      $('#editExit').value = t.exitPrice ?? '';
+      $('#editResult').value = t.result ?? '';
+      $('#editTPHit').value = '';
+      $('#editNote').value = t.note ?? '';
+      $('#editSymbol').value = t.symbol ?? '';
+      $('#btnSaveEdit').onclick = ()=>{
+        const list = loadJournal();
+        const tr = list.find(x=>x.id===id);
+        if(!tr) return;
+        const hit = Number($('#editTPHit').value);
+        const exRaw = $('#editExit').value;
+        const ex = exRaw!=='' ? Number(exRaw) : (Number.isFinite(hit) ? hit : null);
+        tr.exitPrice = ex;
+        tr.result = $('#editResult').value || tr.result;
+        tr.note = $('#editNote').value || tr.note;
+        tr.symbol = ($('#editSymbol').value || tr.symbol || '').toUpperCase();
+        if(tr.result==='win' && ex!==null){
+          const pnl = (tr.side==='Long'? +1 : -1) * tr.Q * (ex - tr.E);
+          tr.pnl = pnl; tr.roi = tr.M ? (pnl/tr.M)*100 : null;
+          tr.rr = Math.abs(ex - tr.E) / tr.dSL;
+        } else if(tr.result==='loss'){
+          tr.pnl = -Math.abs(tr.R);
+          tr.roi = tr.M ? (tr.pnl/tr.M)*100 : null;
+          tr.rr = -1;
+        }
+        saveJournal(list); closeEdit(); renderJournal();
+      };
+      $('#btnCancelEdit').onclick = closeEdit;
+      function closeEdit(){
+        $('#editModal').style.display='none';
+        $('#editModal').setAttribute('aria-hidden','true');
+      }
+    }
 
-    // Auto-calc on Enter in inputs
-    ['margin','entry','stop','lev','risk','qty'].forEach(id=>{
-      $('#'+id).addEventListener('keydown', e=>{ if(e.key==='Enter') calc(); });
-    });
+    // ====== Stats & grouping ======
+    function startOf(date, unit){
+      const d = new Date(date);
+      if(unit==='day'){ d.setHours(0,0,0,0); }
+      if(unit==='week'){
+        const day = (d.getDay()+6)%7;
+        d.setHours(0,0,0,0); d.setDate(d.getDate()-day);
+      }
+      if(unit==='month'){ d.setHours(0,0,0,0); d.setDate(1); }
+      if(unit==='year'){ d.setHours(0,0,0,0); d.setMonth(0,1); }
+      return d.toISOString();
+    }
+    function inRange(ts, from, to){
+      const t = new Date(ts).getTime();
+      if(from && t < new Date(from).getTime()) return false;
+      if(to){ const tend = new Date(to); tend.setHours(23,59,59,999); if(t>tend.getTime()) return false; }
+      return true;
+    }
+    function calcStats(list){
+      const n = list.length;
+      const wins = list.filter(x=>x.result==='win').length;
+      const pnl = list.reduce((s,x)=> s + (Number(x.pnl)||0), 0);
+      const exp = n ? pnl/n : 0;
+      $('#sTrades').textContent = n;
+      $('#sWinrate').textContent = (n ? (wins/n*100).toFixed(1) : '0') + '%';
+      $('#sNet').textContent = pnl.toFixed(2);
+      $('#sExp').textContent = exp.toFixed(2);
+    }
 
-    // Auto add extra TP rows when last TP is filled
-    els.tpList.addEventListener('input', (e)=>{
-      if(e.target.classList.contains('tp')){
-        const tps = $$('.tp');
-        if(tps.length && tps[tps.length-1].value !== ''){
-          addTpInput('');
+    // ====== Rendering journal table ======
+    function renderJournal(){
+      const from = $('#dateFrom').value || null;
+      const to = $('#dateTo').value || null;
+      const unit = $('#groupUnit').value;
+      const all = loadJournal();
+      const filtered = all.filter(x=> inRange(x.ts, from, to));
+
+      calcStats(filtered);
+
+      const body = $('#journalBody');
+      body.innerHTML = '';
+      const groups = {};
+      for(const t of filtered){
+        const key = startOf(t.ts, unit);
+        (groups[key] ||= []).push(t);
+      }
+      const keys = Object.keys(groups).sort((a,b)=> new Date(b)-new Date(a));
+      for(const k of keys){
+        const g = groups[k];
+        const gh = document.createElement('tr');
+        const title = new Date(k);
+        gh.innerHTML = `<td colspan="10" style="color:#cad1ff; font-weight:700; background:#11163a; border:1px solid var(--border)">
+          ${title.toLocaleDateString()} — ${g.length} lệnh
+        </td>`;
+        body.appendChild(gh);
+        for(const t of g){
+          const tr = document.createElement('tr');
+          const tps = (t.tps||[]).filter(v=>v!==null).map(v=>Number(v).toFixed(4)).join(', ');
+          const resTxt = t.result ? `<span class="status ${t.result==='win'?'win':'loss'}">${t.result.toUpperCase()}</span>` : '<span class="status">—</span>';
+          const pnlTxt = (t.pnl!==null && t.pnl!==undefined) ? `${Number(t.pnl).toFixed(2)} <span class="muted">USDT</span> (<span class="${(t.roi??0)>=0?'ok':'bad'}">${Number(t.roi??0).toFixed(2)}%</span>)` : '—';
+          tr.innerHTML = `
+            <td class="nowrap">${new Date(t.ts).toLocaleString()}</td>
+            <td>${t.symbol || '—'}</td>
+            <td>${t.side}</td>
+            <td class="nowrap">${t.E} / ${t.SL}</td>
+            <td class="nowrap">${Number(t.Q).toFixed(6)} / ${Number(t.L).toFixed(2)}</td>
+            <td>${Number(t.R).toFixed(2)}</td>
+            <td>${tps || '—'}</td>
+            <td>${resTxt}<div class="muted">${pnlTxt}</div></td>
+            <td>${(t.note||'')}</td>
+            <td class="nowrap">
+              <div class="actions-row">
+                <button class="mini secondary" onclick="markRes('${t.id}','win')">Win</button>
+                <button class="mini secondary" onclick="markRes('${t.id}','loss')">Loss</button>
+                <button class="mini secondary" onclick="markRes('${t.id}',null)">Reset</button>
+                <button class="mini secondary" onclick="editTrade('${t.id}')">Sửa</button>
+                <button class="mini secondary" onclick="dupeTrade('${t.id}')">Nhân bản</button>
+                <button class="mini warn" onclick="delTrade('${t.id}')">Xoá</button>
+              </div>
+            </td>`;
+          body.appendChild(tr);
         }
       }
+    }
+
+    // ====== Export / Import ======
+    function download(name, content, type='text/plain'){
+      const blob = new Blob([content], {type});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download=name; a.click();
+      URL.revokeObjectURL(url);
+    }
+    function exportCSV(){
+      const list = loadJournal();
+      const headers = ['id','ts','symbol','side','M','E','SL','L','R','Q','N','dSL','moveSLPct','roiStopPct','tps','result','exitPrice','pnl','roi','rr','note'];
+      const rows = [headers.join(',')];
+      for(const t of list){
+        const vals = headers.map(h=>{
+          let v = t[h];
+          if(Array.isArray(v)) v = v.join('|');
+          if(v===undefined || v===null) v = '';
+          const s = String(v).replace(/"/g,'""');
+          return `"${s}"`;
+        });
+        rows.push(vals.join(','));
+      }
+      download('trade_journal.csv', rows.join('\\n'), 'text/csv');
+    }
+    function exportJSON(){
+      const list = loadJournal();
+      download('trade_journal.json', JSON.stringify(list, null, 2), 'application/json');
+    }
+    function importJSON(file){
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const arr = JSON.parse(reader.result);
+          if(Array.isArray(arr)){ localStorage.setItem(KEY_JOURNAL, JSON.stringify(arr)); renderJournal(); alert('Đã nhập nhật ký từ file.'); }
+          else alert('File không hợp lệ.');
+        }catch(e){ alert('Không đọc được file JSON.'); }
+      };
+      reader.readAsText(file);
+    }
+
+    // ====== Events wiring ======
+    $('#btnLong').addEventListener('click', ()=> setSide(+1));
+    $('#btnShort').addEventListener('click', ()=> setSide(-1));
+    $('#addTP').addEventListener('click', ()=> addTpInput(''));
+    $('#clearTP').addEventListener('click', clearTPs);
+    $('#calc').addEventListener('click', calc);
+    $('#reset').addEventListener('click', ()=>{ localStorage.removeItem(KEY_INPUTS); location.reload(); });
+    $('#sample').addEventListener('click', fillSample);
+    $$('.chip').forEach(ch=> ch.addEventListener('click', ()=> applyChip(ch)));
+    ['margin','entry','stop','lev','risk','qty','symbol'].forEach(id=>{
+      $('#'+id).addEventListener('keydown', e=>{ if(e.key==='Enter') calc(); });
+    });
+    $('#tpList').addEventListener('input', (e)=>{
+      if(e.target.classList.contains('tp')){
+        const tps = $$('.tp');
+        if(tps.length && tps[tps.length-1].value !== '') addTpInput('');
+      }
+    });
+    $('#btnAddJournal').addEventListener('click', ()=>{
+      if(lastCalcSnapshot){ addToJournal(lastCalcSnapshot); $('#promptAdd').style.display='none'; lastCalcSnapshot = null; }
+    });
+    $('#btnCancelAdd').addEventListener('click', ()=>{ $('#promptAdd').style.display='none'; lastCalcSnapshot = null; });
+
+    // Journal toolbar
+    $('#btnFilter').addEventListener('click', renderJournal);
+    $('#btnExportCSV').addEventListener('click', exportCSV);
+    $('#btnExportJSON').addEventListener('click', exportJSON);
+    $('#btnImport').addEventListener('click', ()=> $('#importFile').click());
+    $('#importFile').addEventListener('change', (e)=>{
+      const f = e.target.files[0]; if(f) importJSON(f); e.target.value='';
     });
 
-    restore();
+    // Init
+    restoreInputs(); renderJournal();
   </script>
 </body>
 </html>
